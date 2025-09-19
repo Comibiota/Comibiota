@@ -231,6 +231,8 @@
               <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="prefs" value="Sin gluten" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />Sin gluten</label>
               <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="prefs" value="Low FODMAP estricto" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />Low-FODMAP estricto</label>
               <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="prefs" value="Sin picante" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />Sin picante</label>
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="prefs" value="Sin Azúcares" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />Sin Azúcares</label>
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="prefs" value="Sin Carbohidratos" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />Sin Carbohidratos</label>
             </div>
           </div>
           <div class="sm:col-span-2">
@@ -262,74 +264,125 @@
   </footer>
 
   <!-- SCRIPTS -->
-  <script>
-    // Año en footer
-    document.getElementById('year').textContent = new Date().getFullYear();
+<script>
+  // ===== UTILIDADES BÁSICAS (año footer + menú móvil) =====
+  document.getElementById('year').textContent = new Date().getFullYear();
+  document.getElementById('menuBtn')?.addEventListener('click', () => {
+    document.getElementById('mobileMenu')?.classList.toggle('hidden');
+  });
 
-    // Menú móvil
-    document.getElementById('menuBtn')?.addEventListener('click', () => {
-      document.getElementById('mobileMenu')?.classList.toggle('hidden');
-    });
+  // ===== CONFIGURACIÓN DEL ENDPOINT =====
+  // 1) Pon aquí un valor por defecto si quieres (opcional):
+  const DEFAULT_ENDPOINT = ""; // ej.: "https://formsubmit.co/ajax/cuidamicrobiota@gmail.com"
 
-    /**
-     * ENVÍO DE FORMULARIOS
-     * Sustituye FORM_ENDPOINT por tu endpoint real (por ejemplo, un webhook, Firebase Function, Formspree, etc.).
-     * Si tu endpoint espera JSON (recomendado), deja USE_JSON = true.
-     */
-    const FORM_ENDPOINT = "REEMPLAZA_CON_TU_ENDPOINT";  // 👈 Pega aquí tu endpoint
-    const USE_JSON = true;
+  // 2) Lee de ?endpoint=..., si viene lo guarda en localStorage.
+  function resolveEndpoint() {
+    const qs = new URLSearchParams(location.search);
+    const qp = qs.get("endpoint");
+    if (qp) {
+      localStorage.setItem("COMIBIOTA_ENDPOINT", qp);
+      return qp;
+    }
+    const saved = localStorage.getItem("COMIBIOTA_ENDPOINT");
+    return saved || DEFAULT_ENDPOINT;
+  }
+  let FORM_ENDPOINT = resolveEndpoint();
 
-    async function sendForm(formEl, messageEl, submitBtn) {
-      messageEl.textContent = ""; messageEl.className = "text-sm";
-      if (!formEl.checkValidity()) { formEl.reportValidity(); return; }
-      if (!FORM_ENDPOINT || FORM_ENDPOINT.includes("REEMPLAZA_CON_TU_ENDPOINT")) {
-        messageEl.textContent = "⚠️ Falta configurar el endpoint de envío.";
-        messageEl.classList.add("text-amber-600"); return;
-      }
-      const prev = submitBtn.textContent; submitBtn.textContent = "Enviando…"; submitBtn.disabled = true;
+  // 3) Panel rápido (atajos): Alt+E para configurar, Alt+Shift+E para borrar.
+  function configureEndpoint() {
+    const current = FORM_ENDPOINT || "";
+    const next = prompt("Pega el ENDPOINT de envío (deja vacío para cancelar):", current);
+    if (next === null) return; // cancelado
+    const val = (next || "").trim();
+    if (!val) { alert("No se cambió el endpoint."); return; }
+    localStorage.setItem("COMIBIOTA_ENDPOINT", val);
+    FORM_ENDPOINT = val;
+    alert("Endpoint guardado ✅");
+  }
+  function clearEndpoint() {
+    localStorage.removeItem("COMIBIOTA_ENDPOINT");
+    FORM_ENDPOINT = DEFAULT_ENDPOINT;
+    alert("Endpoint borrado. Se usará el valor por defecto (si existe).");
+  }
+  window.addEventListener("keydown", (e) => {
+    const k = e.key?.toLowerCase();
+    if (e.altKey && !e.shiftKey && k === "e") { e.preventDefault(); configureEndpoint(); }
+    if (e.altKey && e.shiftKey && k === "e") { e.preventDefault(); clearEndpoint(); }
+  });
 
-      let payload, headers = {};
-      if (USE_JSON) {
-        const data = Object.fromEntries(new FormData(formEl).entries());
-        const prefs = []; formEl.querySelectorAll('input[name="prefs"]:checked').forEach(c => prefs.push(c.value));
-        if (prefs.length) data.prefs = prefs;
-        payload = JSON.stringify(data); headers["Content-Type"] = "application/json";
-      } else {
-        payload = new FormData(formEl);
-      }
+  // Opcional: muestra un botón flotante si añades ?config=1 o si estás en localhost
+  (function () {
+    const qs = new URLSearchParams(location.search);
+    const showCfg = qs.get("config") === "1" || ["localhost","127.0.0.1"].includes(location.hostname);
+    if (!showCfg) return;
+    const btn = document.createElement("button");
+    btn.title = "Configurar endpoint (Alt+E)";
+    btn.className = "fixed bottom-4 right-4 rounded-xl bg-brand-600 text-white px-3 py-2 text-sm shadow-soft hover:bg-brand-700";
+    btn.textContent = "Configurar envío";
+    btn.onclick = configureEndpoint;
+    document.body.appendChild(btn);
+  })();
 
-      try {
-        const res = await fetch(FORM_ENDPOINT, { method: "POST", headers, body: payload });
-        if (!res.ok) throw new Error("Error " + res.status);
-        messageEl.textContent = "✅ ¡Gracias! Hemos recibido tu solicitud. Te contactaremos muy pronto.";
-        messageEl.classList.add("text-brand-700"); formEl.reset();
-      } catch (e) {
-        console.error(e);
-        messageEl.textContent = "❌ Error al enviar. Escríbenos a cuidamicrobiota@gmail.com y lo resolvemos.";
-        messageEl.classList.add("text-red-600");
-      } finally {
-        submitBtn.textContent = prev; submitBtn.disabled = false;
-      }
+  // ===== ENVÍO DE FORMULARIOS =====
+  // Si tu endpoint espera JSON (recomendado), deja USE_JSON = true.
+  const USE_JSON = true;
+
+  async function sendForm(formEl, messageEl, submitBtn) {
+    messageEl.textContent = ""; messageEl.className = "text-sm";
+    if (!formEl.checkValidity()) { formEl.reportValidity(); return; }
+    if (!FORM_ENDPOINT) {
+      messageEl.textContent = "⚠️ Falta configurar el endpoint de envío. Pulsa Alt+E o añade ?endpoint=... a la URL.";
+      messageEl.classList.add("text-amber-600"); return;
+    }
+    const prev = submitBtn.textContent; submitBtn.textContent = "Enviando…"; submitBtn.disabled = true;
+
+    let payload, headers = {};
+    if (USE_JSON) {
+      const data = Object.fromEntries(new FormData(formEl).entries());
+      const prefs = [];
+      formEl.querySelectorAll('input[name="prefs"]:checked').forEach(c => prefs.push(c.value));
+      if (prefs.length) data.prefs = prefs;
+      payload = JSON.stringify(data);
+      headers["Content-Type"] = "application/json";
+      headers["Accept"] = "application/json"; // útil p.ej. con FormSubmit
+    } else {
+      payload = new FormData(formEl);
     }
 
-    // Hero form
-    const heroForm = document.getElementById('heroForm');
-    if (heroForm) heroForm.addEventListener('submit', (e) => {
+    try {
+      const res = await fetch(FORM_ENDPOINT, { method: "POST", headers, body: payload });
+      if (!res.ok) throw new Error("Error " + res.status);
+      messageEl.textContent = "✅ ¡Gracias! Hemos recibido tu solicitud. Te contactaremos muy pronto.";
+      messageEl.classList.add("text-brand-700");
+      formEl.reset();
+    } catch (e) {
+      console.error(e);
+      messageEl.textContent = "❌ Error al enviar. Escríbenos a cuidamicrobiota@gmail.com y lo resolvemos.";
+      messageEl.classList.add("text-red-600");
+    } finally {
+      submitBtn.textContent = prev; submitBtn.disabled = false;
+    }
+  }
+
+  // Hero form
+  const heroForm = document.getElementById('heroForm');
+  if (heroForm) heroForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendForm(heroForm, document.getElementById('heroMsg'), document.getElementById('heroSubmit'));
+  });
+
+  // Contact form
+  const contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      sendForm(heroForm, document.getElementById('heroMsg'), document.getElementById('heroSubmit'));
+      sendForm(contactForm, document.getElementById('contactMsg'), document.getElementById('contactSubmit'));
     });
-
-    // Contact form
-    const contactForm = document.getElementById('contactForm');
-    if (contactForm) {
-      contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        sendForm(contactForm, document.getElementById('contactMsg'), document.getElementById('contactSubmit'));
-      });
-      document.getElementById('contactReset').addEventListener('click', () => {
-        contactForm.reset(); const msg = document.getElementById('contactMsg'); msg.textContent = ""; msg.className = "text-sm";
-      });
-    }
-  </script>
+    document.getElementById('contactReset').addEventListener('click', () => {
+      contactForm.reset();
+      const msg = document.getElementById('contactMsg'); msg.textContent = ""; msg.className = "text-sm";
+    });
+  }
+</script>
 </body>
 </html>

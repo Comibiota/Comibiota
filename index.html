@@ -118,7 +118,7 @@
             <button type="submit" class="btn w-full" id="heroSubmit">Recibir demo</button>
             <p id="heroMsg" class="text-sm"></p>
           </form>
-          <p class="mt-3 text-xs text-gray-500">Contacto directo: <a class="underline decoration-brand-300 underline-offset-2" href="mailto:cuidamicrobiota@gmail.com">cuidamicrobiota@gmail.com</a></p>
+          <p class="mt-3 text-xs text-gray-500">Contacto directo: <a class="underline decoration-brand-300 underline-offset-2" href="mailto:cuidacomibiota@gmail.com">cuidacomibiota@gmail.com</a></p>
         </div>
       </div>
     </div>
@@ -195,7 +195,7 @@
     <div class="mx-auto max-w-7xl px-4 py-16 sm:py-20">
       <div class="mx-auto max-w-3xl rounded-2xl border border-gray-100 bg-white p-6 shadow-soft sm:p-8">
         <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Solicita tu menú semanal</h2>
-        <p class="mt-2 text-gray-700">Déjanos tus datos y te contactaremos con un ejemplo de menú y la lista de compra. También puedes escribirnos a <a href="mailto:cuidamicrobiota@gmail.com" class="underline decoration-brand-300 underline-offset-2">cuidamicrobiota@gmail.com</a>.</p>
+        <p class="mt-2 text-gray-700">Déjanos tus datos y te contactaremos con un ejemplo de menú y la lista de compra. También puedes escribirnos a <a href="mailto:cuidacomibiota@gmail.com" class="underline decoration-brand-300 underline-offset-2">cuidacomibiota@gmail.com</a>.</p>
 
         <!-- IMPORTANTE: pega tu endpoint real en FORM_ENDPOINT (ver <script> final) -->
         <form id="contactForm" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2" novalidate>
@@ -258,7 +258,7 @@
     <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-8 sm:flex-row sm:items-center">
       <p class="text-sm text-gray-600">© <span id="year"></span> Comibiota — Todos los derechos reservados.</p>
       <div class="text-sm text-gray-600">
-        <a href="mailto:cuidamicrobiota@gmail.com" class="underline decoration-brand-300 underline-offset-2">cuidamicrobiota@gmail.com</a>
+        <a href="mailto:cuidacomibiota@gmail.com" class="underline decoration-brand-300 underline-offset-2">cuidacomibiota@gmail.com</a>
       </div>
     </div>
   </footer>
@@ -273,7 +273,7 @@
 
   // ===== CONFIGURACIÓN DEL ENDPOINT =====
   // 1) Pon aquí un valor por defecto si quieres (opcional):
-  const DEFAULT_ENDPOINT = ""; // ej.: "https://formsubmit.co/ajax/cuidamicrobiota@gmail.com"
+  const DEFAULT_ENDPOINT = "https://formsubmit.co/ajax/cuidacomibiota@gmail.com"; // ej.: "https://formsubmit.co/ajax/cuidacomibiota@gmail.com"
 
   // 2) Lee de ?endpoint=..., si viene lo guarda en localStorage.
   function resolveEndpoint() {
@@ -357,7 +357,7 @@
       formEl.reset();
     } catch (e) {
       console.error(e);
-      messageEl.textContent = "❌ Error al enviar. Escríbenos a cuidamicrobiota@gmail.com y lo resolvemos.";
+      messageEl.textContent = "❌ Error al enviar. Escríbenos a cuidacomibiota@gmail.com y lo resolvemos.";
       messageEl.classList.add("text-red-600");
     } finally {
       submitBtn.textContent = prev; submitBtn.disabled = false;
